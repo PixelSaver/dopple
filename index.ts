@@ -1,7 +1,7 @@
 import { App } from '@slack/bolt';
 
 const app = new App({
-    // TODO
+    token: process.env.SLACK_TOKEN,
 });
 
 // define logic for App
