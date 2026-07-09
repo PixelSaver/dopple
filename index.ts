@@ -75,7 +75,7 @@ app.message(async (event) => {
     await client.chat.postMessage({
         channel: event.payload.channel,
         thread_ts: event.payload.thread_ts ?? event.payload.ts,
-        text: MARKER + ':miau2:',
+        text: ':miau2:',
     });
     
     // event.say(':miau2: <@' + process.env.ID + '> :miau:');
