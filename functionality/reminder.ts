@@ -4,7 +4,7 @@ import { respondWith, formatSlackTimestamp } from "../utility/util";
 import * as chrono from "chrono-node";
 import { getRandomEmote } from "../utility/emote";
 import { getMessagePermalink } from "../utility/util";
-import { loadUsers, saveUsers } from "../functionality/users";
+import { loadUsers, saveUsers, isRegistered, register, getUsername } from "../functionality/users";
 
 export interface Reminder {
     date: string;
@@ -15,6 +15,9 @@ const DATE_CUTOFF = new Date("2000-01-01");
 
 // !remindme
 export async function remindmeCommand(ctx: CommandContext) {
+    if (! await isRegistered(ctx.senderId)) {
+        await registerSilently(ctx);
+    }
     let input = ctx.args.join(" ");
     const match = input.match(/^(.*?)\s+(to|about|that|of)\s+(.+)$/i);
     
@@ -35,7 +38,7 @@ export async function remindmeCommand(ctx: CommandContext) {
     }
     let permalink = await getMessagePermalink(ctx)
     let message = `Hello! This is PixelSaver's alter ego speaking ${await getRandomEmote(['happy'])}\n` +
-        `My sources are telling me you asked me to remind you of this:\n` +
+        `My sources are telling me you asked me to remind you of this:\n\n` +
         `> ${messageText}\n\n` + 
         `<` + `${permalink}|Jump to your original message>\n` +
         `Hope that helps! ${await getRandomEmote(['happy'])}`;
@@ -68,6 +71,12 @@ export async function remindmeCommand(ctx: CommandContext) {
         ` ${messageResponse} \`${messageText}\``
     )
 }
+export async function registerSilently(ctx: CommandContext) {
+    const username = await getUsername(ctx.senderId, ctx.user_client);
+    console.log("Silently registering user:", username);
+    let result = await register(username ?? "", ctx.senderId);
+}
+
 export async function setUserReminder(user_id: string, reminder: Reminder) {
     const users = await loadUsers();
     const user = users.find((u) => u.id === user_id);

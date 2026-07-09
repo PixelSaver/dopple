@@ -1,5 +1,5 @@
-import { App } from "@slack/bolt";
 import type { CommandContext } from "../utility/command";
+
 
 export async function getMessagePermalink(ctx: CommandContext): Promise<string> {
     const { user_client, channel, threadTs } = ctx;
@@ -12,7 +12,6 @@ export async function getMessagePermalink(ctx: CommandContext): Promise<string> 
 export function formatSlackTimestamp(timestamp: string, fallback_text: string): string {
     return `<!date^${timestamp}^{date_long_pretty} at {time_secs}, or {ago}|${fallback_text}>`
 }
-
 export async function respondWith(ctx: CommandContext, message: string) {
     ctx.user_client.chat.postMessage({
         channel: ctx.channel,
