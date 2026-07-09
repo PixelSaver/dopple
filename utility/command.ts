@@ -85,14 +85,14 @@ export async function helpCommand(ctx: CommandContext) {
         `- !help - Show this help message\n` + 
         `- !register - Register yourself for using this bot\n` + 
         `- !deregister - Deregister yourself from using this bot\n` + 
-        `- !remindme - Set a reminder (\`!remindme <time (tomorrow, in three days, etc.)> to <reminder text>\`)` +
-        `btw try different grammars and see if it works!(for, of, about, that, etc.) DM < @${ process.env.ME_ID }> if it doesn't so they can fix it.\n` + 
-        `` + 
-        `*Registration does nothing right now... :P` + 
-        `` + 
+        `- !remindme - Set a reminder (\`!remindme <time (tomorrow, in three days, etc.)> to <reminder text>\`)\n` +
+        `btw try different grammars and see if it works!(for, of, about, that, etc.) DM <@${ process.env.ME_ID }> if it doesn't so they can fix it.\n` + 
+        `\n` + 
+        `*Registration does nothing right now... :P Deregistration clears your reminders by the way!\n` + 
+        `\n` + 
         `> There's a hidden command that does something weird, so good luck finding it!\n` + 
-        `> (don't check the source code for this :pls:${await getRandomEmote(['scared'])})
-        `);
+        `> (don't check the source code for this :pls:${await getRandomEmote(['scared'])})\n\n` + 
+        `Try the bot out here: <#C0BFX2A5HNK>`);``
 }
 export async function meowCommand(ctx: CommandContext) {
     respondWith(ctx, await getRandomEmote(['meow']));
