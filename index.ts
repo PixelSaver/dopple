@@ -1,7 +1,9 @@
 import { App } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
-import { isRegistered, checkReminders, loadUsers, getUserPester } from "./users/users";
-import { respondWith, parseCommands } from "./utility/command";
+import { isRegistered, loadUsers, getUserPester } from "./functionality/users";
+import { respondWith } from './utility/util';
+import { checkReminders } from './functionality/reminder';
+import { parseCommands } from "./utility/command";
 import { getRandomEmote } from "./utility/emote";
 
 

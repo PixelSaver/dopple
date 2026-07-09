@@ -12,3 +12,11 @@ export async function getMessagePermalink(ctx: CommandContext): Promise<string> 
 export function formatSlackTimestamp(timestamp: string, fallback_text: string): string {
     return `<!date^${timestamp}^{date_long_pretty} at {time_secs}, or {ago}|${fallback_text}>`
 }
+
+export async function respondWith(ctx: CommandContext, message: string) {
+    ctx.user_client.chat.postMessage({
+        channel: ctx.channel,
+        thread_ts: ctx.threadTs,
+        text: message,
+    });
+}

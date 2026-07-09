@@ -1,11 +1,10 @@
-import { register, deregister, setUserReminder, isRegistered, getUsername } from "../users/users";
-import { formatSlackTimestamp, getMessagePermalink } from "../utility/util";
+import { register, deregister, isRegistered, getUsername } from "../functionality/users";
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
-import * as chrono from "chrono-node";
+import { respondWith } from "../utility/util";
+import { remindmeCommand } from "../functionality/reminder";
 import { getRandomEmote } from "./emote";
 
-const DATE_CUTOFF = new Date("2000-01-01");
 
 export type CommandContext = {
     app: App;
@@ -44,17 +43,13 @@ export async function parseCommands(text: string, ctx: CommandContext) {
         case 'emote':
             return emoteCommand(ctx);
         case 'hello':
-            if (!isRegistered(ctx.senderId)) return;
             return helloCommand(ctx);
 
         // Registered only
         case 'remindme':
-            if (!isRegistered(ctx.senderId)) return;
             return remindmeCommand(ctx);
         
         default:
-            if (!isRegistered(ctx.senderId)) return;
-        
             return respondWith(
                 ctx,
                 `That's not a response, silly! ${await getRandomEmote(['happy'])} Did you need some \`!help\`?\n` +
@@ -63,13 +58,6 @@ export async function parseCommands(text: string, ctx: CommandContext) {
     }
 }
 
-export async function respondWith(ctx: CommandContext, message: string) {
-    ctx.user_client.chat.postMessage({
-        channel: ctx.channel,
-        thread_ts: ctx.threadTs,
-        text: message,
-    });
-}
 
 // !hello
 export async function helloCommand(context:CommandContext) {
@@ -89,63 +77,7 @@ export async function deregisterCommand(ctx: CommandContext) {
     respondWith(ctx, result);
 }
 
-// !remindme
-export async function remindmeCommand(ctx: CommandContext) {
-    let input = ctx.args.join(" ");
-    const match = input.match(/^(.*?)\s+(to|about|that|of)\s+(.+)$/i);
-    
-    if (!match) {
-        return;
-    }
-    
-    const [, timeText, separator, messageText] = match;
-    if (!timeText || !messageText) { return; }
-    const date = chrono.parseDate(timeText);
-    if (!date) {
-        respondWith(ctx, `${await getRandomEmote(['mad'])} I couldn\'t parse the date. ${await getRandomEmote(['beg'])}Please provide a valid date.`);
-        return;
-    }
-    if (date.getTime() < DATE_CUTOFF.getTime()) {
-        respondWith(ctx, `${await getRandomEmote(['mad'])} The date you provided is too far in the past. Don\'t be such an unc and choose a time when you were alive.`);
-        return;
-    }
-    let permalink = await getMessagePermalink(ctx)
-    let message = `Hello! This is PixelSaver's alter ego speaking ${await getRandomEmote(['happy'])}\n` +
-        `My sources are telling me you asked me to remind you of this:\n` +
-        `> ${messageText}\n\n` + 
-        `<` + `${permalink}|Jump to your original message>\n` +
-        `Hope that helps! ${await getRandomEmote(['happy'])}`;
-    let result = await setUserReminder(ctx.senderId, { date: date.toISOString(), message: message });
-    if (!result) {
-        respondWith(ctx, `${await getRandomEmote(['sad'])} There has been an error reading your user. ${await getRandomEmote(['scared'])} Try \`!deregister\` and then \`!register\`, or dm the maker.`);
-        return;
-    }
 
-    var messageResponse = "when you should think about"
-    switch (separator) {
-        case "to":
-            messageResponse = `that you need to`;
-            break;
-        case "about":
-            messageResponse = `to think about`;
-            break;
-        case "that":
-            messageResponse = `that`;
-            break;
-        case "of":
-            messageResponse = `when you should think of`;
-            break;
-        default:
-            messageResponse = messageText;
-            break;
-    }
-    respondWith(ctx,
-        `${await getRandomEmote(['meow', 'regular'])} I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())}` +
-        ` ${messageResponse} \`${messageText}\``
-    )
-    
-    
-}
 export async function helpCommand(ctx: CommandContext) {
     respondWith(ctx, `Available commands: ${await getRandomEmote(['regular'])}\n` + 
         `btw try different grammars and see if it works!(for, of, about, that, etc.) DM < @${ process.env.ME_ID }> if it doesn't so they can fix it.\n` + 
