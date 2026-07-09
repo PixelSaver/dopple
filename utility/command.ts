@@ -128,6 +128,7 @@ export async function helpCommand(ctx: CommandContext) {
         `!deregister - Deregister yourself from using this bot` + 
         `!remindme - Set a reminder (\`!remindme in <time> to <reminder text>\`)` + 
         `!meow - Bot meows for you (why?)` + 
+        `!emote - Get a random emote (e.g. \`!emote happy\`)` + 
         `!help - Show this help message` + 
         `` + 
         `> There's a hidden command that does something weird, so good luck finding it! ` + 
@@ -146,6 +147,10 @@ export async function mewCommand(ctx: CommandContext) {
     respondWith(ctx, `:mew: -- but I'm sure you meant \`!meow\`, right?? ${await getRandomEmote(['scared'])}`);
 }
 export async function emoteCommand(ctx: CommandContext) {
+    if (ctx.args.length === 0) {
+        respondWith(ctx, `${await getRandomEmote(['regular'])}`);
+        return;
+    }
     var out = "";
     for (const tag of ctx.args) {
         out += await getRandomEmote([tag]);
