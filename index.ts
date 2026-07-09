@@ -76,4 +76,4 @@ app.message(async (event) => {
 await app.start();
 setInterval(() => {
     checkReminders(client)
-}, 10_000);
+}, 15_000);

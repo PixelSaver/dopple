@@ -92,8 +92,13 @@ export async function deregisterCommand(ctx: CommandContext) {
 // !remindme
 export async function remindmeCommand(ctx: CommandContext) {
     let input = ctx.args.join(" ");
-    let parts = input.split(" to ");
-    const [timeText, messageText] = parts;
+    const match = input.match(/^(.*?)\s+(to|about|that|of)\s+(.+)$/i);
+    
+    if (!match) {
+        return;
+    }
+    
+    const [, timeText, separator, messageText] = match;
     if (!timeText || !messageText) { return; }
     const date = chrono.parseDate(timeText);
     if (!date) {
@@ -115,22 +120,40 @@ export async function remindmeCommand(ctx: CommandContext) {
         respondWith(ctx, `${await getRandomEmote(['sad'])} There has been an error reading your user. ${await getRandomEmote(['scared'])} Try \`!deregister\` and then \`!register\`, or dm the maker.`);
         return;
     }
-    
+
+    var messageResponse = "when you should think about"
+    switch (separator) {
+        case "to":
+            messageResponse = `that you need to`;
+            break;
+        case "about":
+            messageResponse = `to think about`;
+            break;
+        case "that":
+            messageResponse = `that`;
+            break;
+        case "of":
+            messageResponse = `when you should think of`;
+            break;
+        default:
+            messageResponse = messageText;
+            break;
+    }
     respondWith(ctx,
-        `${await getRandomEmote(['meow', 'regular'])} I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())} 
-        `)
-        // (aka ${timeText.substring(12)}) to \'${messageText}\'
+        `${await getRandomEmote(['meow', 'regular'])} I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())}` +
+        ` ${messageResponse} \`${messageText}\``
+    )
     
     
 }
 export async function helpCommand(ctx: CommandContext) {
     respondWith(ctx, `Available commands: ${await getRandomEmote(['regular'])}` + 
-        `!register - Register yourself for using this bot` + 
-        `!deregister - Deregister yourself from using this bot` + 
-        `!remindme - Set a reminder (\`!remindme in <time> to <reminder text>\`)` + 
-        `!meow - Bot meows for you (why?)` + 
-        `!emote - Get a random emote (e.g. \`!emote happy\`)` + 
-        `!help - Show this help message` + 
+        `- !register - Register yourself for using this bot` + 
+        `- !deregister - Deregister yourself from using this bot` + 
+        `- !remindme - Set a reminder (\`!remindme <time (tomorrow, in three days, etc.)> to <reminder text>\`) btw try different grammars and see if it works! (for, of, about, that, etc.) DM <@${process.env.ME_ID}> if it doesn't so they can fix it.` + 
+        `- !meow - Bot meows for you (why?)` + 
+        `- !emote - Get a random emote (e.g. \`!emote happy\`)` + 
+        `- !help - Show this help message` + 
         `` + 
         `> There's a hidden command that does something weird, so good luck finding it! ` + 
         `> (don't check the source code for this :pls:${await getRandomEmote(['scared'])})
