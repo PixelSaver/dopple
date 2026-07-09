@@ -51,8 +51,6 @@ app.message(async (event) => {
         }
     }
     
-    var message = event.payload.text ?? "";
-    console.log(message);
     if (event.payload.channel !== process.env.ALLOWED_DM_CHANNEL) { return;  }
     // var message = event.payload.text;
     // if (message) {

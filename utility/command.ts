@@ -147,15 +147,18 @@ export async function remindmeCommand(ctx: CommandContext) {
     
 }
 export async function helpCommand(ctx: CommandContext) {
-    respondWith(ctx, `Available commands: ${await getRandomEmote(['regular'])}` + 
-        `- !register - Register yourself for using this bot` + 
-        `- !deregister - Deregister yourself from using this bot` + 
-        `- !remindme - Set a reminder (\`!remindme <time (tomorrow, in three days, etc.)> to <reminder text>\`) btw try different grammars and see if it works! (for, of, about, that, etc.) DM <@${process.env.ME_ID}> if it doesn't so they can fix it.` + 
-        `- !meow - Bot meows for you (why?)` + 
-        `- !emote - Get a random emote (e.g. \`!emote happy\`)` + 
-        `- !help - Show this help message` + 
+    respondWith(ctx, `Available commands: ${await getRandomEmote(['regular'])}\n` + 
+        `btw try different grammars and see if it works!(for, of, about, that, etc.) DM < @${ process.env.ME_ID }> if it doesn't so they can fix it.\n` + 
+        `- !meow - Bot meows for you (why?)\n` + 
+        `- !emote - Get a random emote (e.g. \`!emote happy\`)\n` + 
+        `- !help - Show this help message\n` + 
+        `- !register - Register yourself for using this bot\n` + 
+        `- !deregister - Deregister yourself from using this bot\n` + 
+        `- !remindme - *Set a reminder (\`!remindme <time (tomorrow, in three days, etc.)> to <reminder text>\`)` +
         `` + 
-        `> There's a hidden command that does something weird, so good luck finding it! ` + 
+        `*Only the starred commands need registration to function` + 
+        `` + 
+        `> There's a hidden command that does something weird, so good luck finding it!\n` + 
         `> (don't check the source code for this :pls:${await getRandomEmote(['scared'])})
         `);
 }
