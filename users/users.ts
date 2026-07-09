@@ -8,12 +8,14 @@ interface User {
     name: string;
     id: string;
     reminders: Reminder[];
+    pester: boolean,
 }
 function migrateUser(user: any): User {
     return {
         name: user.name ?? "",
         id: user.id,
         reminders: user.reminders ?? [],
+        pester: user.pester ?? false,
     };
 }
 interface Reminder {
@@ -43,7 +45,7 @@ export async function register(name: string, user_id: string): Promise<string> {
             ">"
         );
     }
-    users.push({ name: name, id: user_id, reminders: [] });
+    users.push(migrateUser({ name: name, id: user_id}));
     await writeFile(USERS_FILE, JSON.stringify(users, null, 2));
     return (
         "You have successfully registered yourself for using this bot, <@" +
@@ -114,4 +116,8 @@ export async function checkReminders(client: WebClient) {
             }
         }
     }
+}
+export async function getUserPester(user_id: string): Promise<boolean> {
+    const user = await getUser(user_id);
+    return user?.pester ?? false;
 }
