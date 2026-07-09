@@ -1,8 +1,9 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, rename } from "node:fs/promises";
 import { WebClient } from "@slack/web-api";
 import { MARKER } from "../marker/marker";
 
 const USERS_FILE = "./data/users.json";
+let saveQueue = Promise.resolve();
 
 interface User {
     name: string;
@@ -31,7 +32,12 @@ export async function loadUsers(): Promise<User[]> {
     return migrated;
 }
 export async function saveUsers(users: User[]): Promise<void> {
-    await writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+    saveQueue = saveQueue.then(async () => {
+        const data = JSON.stringify(users, null, 2);
+        await writeFile(`${USERS_FILE}.tmp`, data);
+        await rename(`${USERS_FILE}.tmp`, USERS_FILE);
+    });
+    return saveQueue;
 }
 
 export async function register(name: string, user_id: string): Promise<string> {

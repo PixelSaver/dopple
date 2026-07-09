@@ -1,7 +1,6 @@
 import { App } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
 import { MARKER } from "./marker/marker";
-import type { CommandContext } from "./utility/command";
 import { isRegistered, checkReminders, loadUsers, getUserPester } from "./users/users";
 import { respondWith, parseCommands } from "./utility/command";
 import { getRandomEmote } from "./utility/emote";
@@ -21,14 +20,15 @@ app.message(async (event) => {
     // Make sure it's not self responding
     if (event.payload.text?.startsWith(MARKER)) { return; }
     
-    parseCommands(app, client, event.payload.text ?? "", {
+    parseCommands(event.payload.text ?? "", {
+        app,
+        user_client: client,
         channel: event.payload.channel,
         threadTs: event.payload.thread_ts ?? event.payload.ts,
         senderId: event.payload.user,
         say: event.say,
         args: [],
     })
-    
     // Make sure they opted in
     var registered = await isRegistered(event.payload.user);
     if (!registered) { return; };
@@ -39,8 +39,9 @@ app.message(async (event) => {
         
         if (Math.random() < .3) {
             await respondWith(
-                client,
                 {
+                    app,
+                    user_client: client,
                     channel: event.payload.channel,
                     threadTs: event.payload.thread_ts ?? event.payload.ts,
                     senderId: event.payload.user,
@@ -51,8 +52,9 @@ app.message(async (event) => {
         }
         if (Math.random() < .3) {
             await respondWith(
-                app.client,
                 {
+                    app,
+                    user_client: client,
                     channel: event.payload.channel,
                     threadTs: event.payload.thread_ts ?? event.payload.ts,
                     senderId: event.payload.user,

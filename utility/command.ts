@@ -1,10 +1,13 @@
 import { register, deregister, setUserReminder, isRegistered } from "../users/users";
+import { formatSlackTimestamp } from "../utility/util";
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 import { MARKER } from "../marker/marker";
 import * as chrono from "chrono-node";
 
 export type CommandContext = {
+    app: App;
+    user_client: WebClient;
     channel: string;
     threadTs: string;
     senderId: string;
@@ -12,7 +15,7 @@ export type CommandContext = {
     args: string[];
 };
 
-export async function parseCommands(app: App, client: WebClient, text: string, ctx: CommandContext) {
+export async function parseCommands(text: string, ctx: CommandContext) {
     // Commands start with !
     if (!text.startsWith('!')) return;
     text = text.substring(1);
@@ -23,34 +26,34 @@ export async function parseCommands(app: App, client: WebClient, text: string, c
     ctx.args = args
     switch (command) {
         case 'uwu':
-            await uwuCommand(client, ctx);
+            await uwuCommand(ctx);
             break;
         case 'meow':
-            await meowCommand(client, ctx);
+            await meowCommand(ctx);
             break;
         case 'help':
-            await helpCommand(client, ctx);
+            await helpCommand(ctx);
             break;
         case 'register':
-            await registerCommand(client, ctx);
+            await registerCommand(ctx);
             break;
         case 'deregister':
-            await deregisterCommand(client, ctx);
+            await deregisterCommand(ctx);
             break;
     }
     if (!isRegistered(ctx.senderId)) { return; }
     switch (command) {
         case 'hello':
-            await helloCommand(client, ctx);
+            await helloCommand(ctx);
             break;
         case 'remindme':
-            await remindmeCommand(client, ctx);
+            await remindmeCommand(ctx);
             break;
     }
 }
 
-export async function respondWith(client: WebClient, ctx: CommandContext, message: string) {
-    client.chat.postMessage({
+export async function respondWith(ctx: CommandContext, message: string) {
+    ctx.user_client.chat.postMessage({
         channel: ctx.channel,
         thread_ts: ctx.threadTs,
         text: MARKER + message,
@@ -58,49 +61,49 @@ export async function respondWith(client: WebClient, ctx: CommandContext, messag
 }
 
 // !hello
-export async function helloCommand(client: WebClient, context:CommandContext) {
-    respondWith(client, context, ':miau2: Hi I\'m Pixel Saver\'s alter ego. Nice to meet you!');
+export async function helloCommand(context:CommandContext) {
+    respondWith(context, ':miau2: Hi I\'m Pixel Saver\'s alter ego. Nice to meet you!');
 }
 
 // !register
-export async function registerCommand(client: WebClient, ctx: CommandContext) {
-    const res = await client.users.info({
+export async function registerCommand(ctx: CommandContext) {
+    const res = await ctx.user_client.users.info({
       user: ctx.senderId,
     });
     let result = await register(res.user?.name ?? "", res.user?.id ?? ctx.senderId);
-    respondWith(client, ctx, result);
+    respondWith(ctx, result);
 }
 
 // !deregister
-export async function deregisterCommand(client: WebClient, ctx: CommandContext) {
+export async function deregisterCommand(ctx: CommandContext) {
     let result = await deregister(ctx.senderId);
-    respondWith(client, ctx, result);
+    respondWith(ctx, result);
 }
 
 // !remindme
-export async function remindmeCommand(client: WebClient, ctx: CommandContext) {
+export async function remindmeCommand(ctx: CommandContext) {
     let input = ctx.args.join(" ");
     let parts = input.split(" to ");
     const [timeText, messageText] = parts;
     if (!timeText || !messageText) { return; }
     const date = chrono.parseDate(timeText);
     if (!date) {
-        respondWith(client, ctx, ':miau2: I couldn\'t parse the date. Please provide a valid date.');
+        respondWith(ctx, ':miau2: I couldn\'t parse the date. Please provide a valid date.');
         return;
     }
 
     let result = await setUserReminder(ctx.senderId, { date: date.toISOString(), message: messageText });
     if (!result) {
-        respondWith(client, ctx, ':miau2: There has been an error reading your user. Try `!deregister` and then `!register`, or dm the maker.');
+        respondWith(ctx, ':miau2: There has been an error reading your user. Try `!deregister` and then `!register`, or dm the maker.');
         return;
     }
     
-    respondWith(client, ctx, `I'll remind you on ${date.toLocaleTimeString()} (aka ${timeText.substring(11)}) to \'${messageText}\'`)
+    respondWith(ctx, `I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime()/1000).toString(), date.toLocaleString())} (aka ${timeText.substring(12)}) to \'${messageText}\'`)
     
     
 }
-export async function helpCommand(client: WebClient, ctx: CommandContext) {
-    respondWith(client, ctx, `Available commands:\n
+export async function helpCommand(ctx: CommandContext) {
+    respondWith(ctx, `Available commands:\n
         !register - Register yourself for using this bot\n
         !deregister - Deregister yourself from using this bot\n
         !remindme - Set a reminder (\`!remindme in <time> to <reminder text>\`)\n
@@ -109,10 +112,10 @@ export async function helpCommand(client: WebClient, ctx: CommandContext) {
         > There's a hidden command that does something weird, so good luck finding it! (don't check the source code :pls:)
         `);
 }
-export async function meowCommand(client: WebClient, ctx: CommandContext) {
+export async function meowCommand(ctx: CommandContext) {
     const randomMeow = Math.random() < 0.5 ? ':miau:' : ':miau2:';
-    respondWith(client, ctx, randomMeow);
+    respondWith(ctx, randomMeow);
 }
-export async function uwuCommand(client: WebClient, ctx: CommandContext) {
-    respondWith(client, ctx, 'uwu');
+export async function uwuCommand(ctx: CommandContext) {
+    respondWith(ctx, 'uwu');
 }
