@@ -1,10 +1,10 @@
 import { App } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
-import { helloCommand } from "./commands/hello";
 import { MARKER } from "./marker/marker";
 import type { CommandContext } from "./commands/command";
+import { is_registered } from "./register/register";
+import { helloCommand, registerCommand, deregisterCommand } from "./commands/command";
 
-const USERS_FILE = "./data/users.json";
 
 async function parseCommands(app: App, text: string, ctx: CommandContext) {
     // Commands start with !
@@ -14,6 +14,15 @@ async function parseCommands(app: App, text: string, ctx: CommandContext) {
     if (!args) return;
     const command = args.at(0);
     console.log("Command is", command);
+    switch (command) {
+        case 'register':
+            await registerCommand(app, ctx);
+            break;
+        case 'deregister':
+            await deregisterCommand(app, ctx);
+            break;
+    }
+    if (!is_registered(ctx.senderId)) { return; }
     switch (command) {
         case 'hello':
             await helloCommand(app, ctx);
@@ -34,8 +43,6 @@ app.message(async (event) => {
     if (event.payload.subtype) return;
     // Make sure it's not self responding
     if (event.payload.text?.startsWith(MARKER)) { return; }
-    // Make sure its me for now
-    if (event.payload.user !== process.env.ME_ID) { return;  };
     
     parseCommands(app, event.payload.text ?? "", {
         channel: event.payload.channel,
@@ -43,6 +50,10 @@ app.message(async (event) => {
         senderId: event.payload.user,
         say: event.say,
     })
+    
+    // Make sure they opted in
+    if (!is_registered(event.payload.user)) { return;  };
+    
     var message = event.payload.text ?? "";
     console.log(message);
     if (event.payload.channel !== process.env.ALLOWED_DM_CHANNEL) { return;  }
