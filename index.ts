@@ -47,7 +47,7 @@ app.message(async (event) => {
                     say: event.say,
                     args: []
                 },
-                `${await getRandomEmote()} <@${event.payload.user}> ${await getRandomEmote()}` )
+                `${await getRandomEmote(['regular'])} <@${event.payload.user}> ${await getRandomEmote(['regular'])}` )
         }
         if (Math.random() < .3) {
             await respondWith(
@@ -60,7 +60,7 @@ app.message(async (event) => {
                     say: event.say,
                     args: []
                 },
-                `${await getRandomEmote()} <@${event.payload.user}> ${await getRandomEmote()}` )
+                `${await getRandomEmote(['regular'])} <@${event.payload.user}> ${await getRandomEmote(['regular'])}` )
         }
     }
     

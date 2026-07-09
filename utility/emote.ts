@@ -1,12 +1,24 @@
 import { readFile } from "fs/promises";
-const EMOTES_FILE = "data/emotes.txt";
+import { parse as yamlParse } from "yaml";
+const EMOTES_FILE = "data/emotes.yaml";
 
-async function getEmotes(): Promise<string[]> {
-    const content = await readFile(EMOTES_FILE, "utf-8");
-    return content.split("\n").filter(Boolean);
+interface Emote {
+    emote: string;
+    tags: string[];
 }
-export async function getRandomEmote(): Promise<string> {
-    const emotes = await getEmotes();
-    if (emotes.length === 0) return "";
-    return emotes[Math.floor(Math.random() * emotes.length)] ?? "";
+
+async function loadEmotes(): Promise<Emote[]> {
+    const content = await readFile(EMOTES_FILE, "utf-8");
+    return yamlParse(content) as Emote[];
+}
+async function queryEmotes(tags: string[]): Promise<Emote[]> {
+    const emotes = await loadEmotes();
+    return emotes.filter(emote => tags.every(tag => emote.tags.includes(tag)));
+}
+export async function getRandomEmote(tags: string[]): Promise<string> {
+    if (tags.length === 0) { tags = ["regular"] };
+    const filtered = await queryEmotes(tags);
+    if (filtered.length === 0) return "";
+    const emote = filtered[Math.floor(Math.random() * filtered.length)]?.emote ?? "";
+    return `${emote}`;
 }

@@ -43,17 +43,15 @@ export async function register(name: string, user_id: string): Promise<string> {
     if (users.find((u) => u.id === user_id)) {
         console.log("Already registered");
         return (
-            `You have already registered yourself for using this bot, <@${user_id}>`
+            `You have already registered yourself for using this bot, *${name}*`
         );
     }
     users.push(migrateUser({ name: name, id: user_id }));
     await saveUsers(users);
     return (
-        "You have successfully registered yourself for using this bot, <@" +
-        user_id +
-        ">\nIf you didn't mean to register, type in `!deregister`. Also, please dm <@" +
-        process.env.ME_ID +
-        "> if you have any questions. Thanks!"
+        `You have successfully registered yourself for using this bot, *${name}*. ` +
+        `\n> If you didn't mean to register, type in \`!deregister\`. ` +
+        `Also, please dm <@${process.env.ME_ID}> if you have any questions. Thanks!`
     );
 }
 export async function isRegistered(user_id: string): Promise<boolean> {
@@ -121,4 +119,11 @@ export async function checkReminders(client: WebClient) {
 export async function getUserPester(user_id: string): Promise<boolean> {
     const user = await getUser(user_id);
     return user?.pester ?? false;
+}
+export async function getUsername(user_id: string, client:WebClient): Promise<string | undefined> {
+    const info = await client.users.info({
+        user: user_id,
+    });
+    const username = info.user?.profile?.display_name || info.user?.name;
+    return username;
 }

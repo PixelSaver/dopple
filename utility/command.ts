@@ -1,8 +1,9 @@
-import { register, deregister, setUserReminder, isRegistered } from "../users/users";
+import { register, deregister, setUserReminder, isRegistered, getUsername } from "../users/users";
 import { formatSlackTimestamp } from "../utility/util";
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 import * as chrono from "chrono-node";
+import { getRandomEmote } from "./emote";
 
 const DATE_CUTOFF = new Date("2000-01-01");
 
@@ -24,7 +25,7 @@ export async function parseCommands(text: string, ctx: CommandContext) {
     if (!args) return;
     const command = args.at(0);
     console.log("Command is", command);
-    ctx.args = args
+    ctx.args = args.slice(1);
     switch (command) {
         case 'mew':
             await mewCommand(ctx);
@@ -32,6 +33,7 @@ export async function parseCommands(text: string, ctx: CommandContext) {
         case 'uwu':
             await uwuCommand(ctx);
             break;
+        case 'miau':
         case 'meow':
             await meowCommand(ctx);
             break;
@@ -44,6 +46,15 @@ export async function parseCommands(text: string, ctx: CommandContext) {
         case 'deregister':
             await deregisterCommand(ctx);
             break;
+        case 'emote':
+            await emoteCommand(ctx);
+            break;
+        default:
+            if (!isRegistered(ctx.senderId)) { return; }
+            respondWith(ctx, `That's not a response, silly! ${await getRandomEmote(['happy'])} Did you need some \`!help\`?\n` +
+                `if you recieved this and you don't know what this is, dm <@${process.env.ME_ID}> and let him know to fix the bug.`
+
+            );
     }
     if (!isRegistered(ctx.senderId)) { return; }
     switch (command) {
@@ -66,15 +77,13 @@ export async function respondWith(ctx: CommandContext, message: string) {
 
 // !hello
 export async function helloCommand(context:CommandContext) {
-    respondWith(context, ':miau2: Hi I\'m Pixel Saver\'s alter ego. Nice to meet you!');
+    respondWith(context, `${await getRandomEmote(['meow'])} Hi I\'m Pixel Saver\'s alter ego. Nice to meet you!`);
 }
 
 // !register
 export async function registerCommand(ctx: CommandContext) {
-    const res = await ctx.user_client.users.info({
-      user: ctx.senderId,
-    });
-    let result = await register(res.user?.name ?? "", res.user?.id ?? ctx.senderId);
+    const username = await getUsername(ctx.senderId, ctx.user_client);
+    let result = await register(username ?? "", ctx.senderId);
     respondWith(ctx, result);
 }
 
@@ -92,44 +101,54 @@ export async function remindmeCommand(ctx: CommandContext) {
     if (!timeText || !messageText) { return; }
     const date = chrono.parseDate(timeText);
     if (!date) {
-        respondWith(ctx, ':miau2: I couldn\'t parse the date. Please provide a valid date.');
+        respondWith(ctx, `${await getRandomEmote(['meow'])} I couldn\'t parse the date. Please provide a valid date.`);
         return;
     }
     if (date.getTime() < DATE_CUTOFF.getTime()) {
-        respondWith(ctx, ':miau2: The date you provided is too far in the past. Don\'t be such an unc and choose a time when you were alive.');
+        respondWith(ctx, `${await getRandomEmote(['meow'])} The date you provided is too far in the past. Don\'t be such an unc and choose a time when you were alive.`);
         return;
     }
 
     let result = await setUserReminder(ctx.senderId, { date: date.toISOString(), message: messageText });
     if (!result) {
-        respondWith(ctx, ':miau2: There has been an error reading your user. Try `!deregister` and then `!register`, or dm the maker.');
+        respondWith(ctx, `${await getRandomEmote(['meow'])} There has been an error reading your user. Try \`!deregister\` and then \`!register\`, or dm the maker.`);
         return;
     }
     
     respondWith(ctx,
-        `I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())} 
+        `${await getRandomEmote(['meow'])} I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())} 
         `)
         // (aka ${timeText.substring(12)}) to \'${messageText}\'
     
     
 }
 export async function helpCommand(ctx: CommandContext) {
-    respondWith(ctx, `Available commands:\n
-        !register - Register yourself for using this bot\n
-        !deregister - Deregister yourself from using this bot\n
-        !remindme - Set a reminder (\`!remindme in <time> to <reminder text>\`)\n
-        !meow - Bot meows for you (why?)\n
-        !help - Show this help message
-        > There's a hidden command that does something weird, so good luck finding it! (don't check the source code :pls:)
+    respondWith(ctx, `Available commands: ${await getRandomEmote(['regular'])}` + 
+        `!register - Register yourself for using this bot` + 
+        `!deregister - Deregister yourself from using this bot` + 
+        `!remindme - Set a reminder (\`!remindme in <time> to <reminder text>\`)` + 
+        `!meow - Bot meows for you (why?)` + 
+        `!help - Show this help message` + 
+        `` + 
+        `> There's a hidden command that does something weird, so good luck finding it! ` + 
+        `> (don't check the source code :pls:)
         `);
 }
 export async function meowCommand(ctx: CommandContext) {
-    const randomMeow = Math.random() < 0.5 ? ':miau:' : ':miau2:';
-    respondWith(ctx, randomMeow);
+    respondWith(ctx, await getRandomEmote(['meow']));
 }
 export async function uwuCommand(ctx: CommandContext) {
-    respondWith(ctx, 'uwu');
+    var uwu = 'uwu'
+    if (Math.random() < 0.05) { uwu = 'owo'}
+    respondWith(ctx, `Yay you found the command! ${await getRandomEmote(['happy'])}\n${uwu} ${await getUsername(ctx.senderId, ctx.user_client)}`);
 }
 export async function mewCommand(ctx: CommandContext) {
-    respondWith(ctx, `:mew: -- but I'm sure you meant \`!meow\`, right??`);
+    respondWith(ctx, `:mew: -- but I'm sure you meant \`!meow\`, right?? ${await getRandomEmote(['scared'])}`);
+}
+export async function emoteCommand(ctx: CommandContext) {
+    var out = "";
+    for (const tag of ctx.args) {
+        out += await getRandomEmote([tag]);
+    }
+    respondWith(ctx, `${out}`);
 }
