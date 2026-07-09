@@ -47,20 +47,7 @@ app.message(async (event) => {
                     say: event.say,
                     args: []
                 },
-                `${await getRandomEmote(['regular'])} <@${event.payload.user}> ${await getRandomEmote(['regular'])}` )
-        }
-        if (Math.random() < .3) {
-            await respondWith(
-                {
-                    app,
-                    user_client: client,
-                    channel: event.payload.channel,
-                    threadTs: event.payload.thread_ts ?? event.payload.ts,
-                    senderId: event.payload.user,
-                    say: event.say,
-                    args: []
-                },
-                `${await getRandomEmote(['regular'])} <@${event.payload.user}> ${await getRandomEmote(['regular'])}` )
+                `${await getRandomEmote([])} <@${event.payload.user}> ${await getRandomEmote([])}` )
         }
     }
     

@@ -81,7 +81,6 @@ export async function setUserReminder(user_id: string, reminder: Reminder) {
     if (!user || !user.reminders) {
         return false;
     }
-    console.log(`user: ${user.id}, reminders: ${user?.reminders}`);
     user.reminders.push(reminder);
 
     await saveUsers(users);

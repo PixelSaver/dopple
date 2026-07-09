@@ -1,5 +1,5 @@
 import { register, deregister, setUserReminder, isRegistered, getUsername } from "../users/users";
-import { formatSlackTimestamp } from "../utility/util";
+import { formatSlackTimestamp, getMessagePermalink } from "../utility/util";
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 import * as chrono from "chrono-node";
@@ -27,43 +27,39 @@ export async function parseCommands(text: string, ctx: CommandContext) {
     console.log("Command is", command);
     ctx.args = args.slice(1);
     switch (command) {
+        // Public commands
         case 'mew':
-            await mewCommand(ctx);
-            break;
+            return mewCommand(ctx);
         case 'uwu':
-            await uwuCommand(ctx);
-            break;
+            return uwuCommand(ctx);
         case 'miau':
         case 'meow':
-            await meowCommand(ctx);
-            break;
+            return meowCommand(ctx);
         case 'help':
-            await helpCommand(ctx);
-            break;
+            return helpCommand(ctx);
         case 'register':
-            await registerCommand(ctx);
-            break;
+            return registerCommand(ctx);
         case 'deregister':
-            await deregisterCommand(ctx);
-            break;
+            return deregisterCommand(ctx);
         case 'emote':
-            await emoteCommand(ctx);
-            break;
-        default:
-            if (!isRegistered(ctx.senderId)) { return; }
-            respondWith(ctx, `That's not a response, silly! ${await getRandomEmote(['happy'])} Did you need some \`!help\`?\n` +
-                `if you recieved this and you don't know what this is, dm <@${process.env.ME_ID}> and let him know to fix the bug.`
-
-            );
-    }
-    if (!isRegistered(ctx.senderId)) { return; }
-    switch (command) {
+            return emoteCommand(ctx);
         case 'hello':
-            await helloCommand(ctx);
-            break;
+            if (!isRegistered(ctx.senderId)) return;
+            return helloCommand(ctx);
+
+        // Registered only
         case 'remindme':
-            await remindmeCommand(ctx);
-            break;
+            if (!isRegistered(ctx.senderId)) return;
+            return remindmeCommand(ctx);
+        
+        default:
+            if (!isRegistered(ctx.senderId)) return;
+        
+            return respondWith(
+                ctx,
+                `That's not a response, silly! ${await getRandomEmote(['happy'])} Did you need some \`!help\`?\n` +
+                `If you received this and don't know what it is, DM <@${process.env.ME_ID}> and let him know to fix the bug.`
+            );
     }
 }
 
@@ -101,22 +97,27 @@ export async function remindmeCommand(ctx: CommandContext) {
     if (!timeText || !messageText) { return; }
     const date = chrono.parseDate(timeText);
     if (!date) {
-        respondWith(ctx, `${await getRandomEmote(['meow'])} I couldn\'t parse the date. Please provide a valid date.`);
+        respondWith(ctx, `${await getRandomEmote(['mad'])} I couldn\'t parse the date. ${await getRandomEmote(['beg'])}Please provide a valid date.`);
         return;
     }
     if (date.getTime() < DATE_CUTOFF.getTime()) {
-        respondWith(ctx, `${await getRandomEmote(['meow'])} The date you provided is too far in the past. Don\'t be such an unc and choose a time when you were alive.`);
+        respondWith(ctx, `${await getRandomEmote(['mad'])} The date you provided is too far in the past. Don\'t be such an unc and choose a time when you were alive.`);
         return;
     }
-
-    let result = await setUserReminder(ctx.senderId, { date: date.toISOString(), message: messageText });
+    let permalink = await getMessagePermalink(ctx)
+    let message = `Hello! This is PixelSaver's alter ego speaking ${await getRandomEmote(['happy'])}\n` +
+        `My sources are telling me you asked me to remind you of this:\n` +
+        `> ${messageText}\n\n` + 
+        `<` + `${permalink}|Jump to your original message>\n` +
+        `Hope that helps! ${await getRandomEmote(['happy'])}`;
+    let result = await setUserReminder(ctx.senderId, { date: date.toISOString(), message: message });
     if (!result) {
-        respondWith(ctx, `${await getRandomEmote(['meow'])} There has been an error reading your user. Try \`!deregister\` and then \`!register\`, or dm the maker.`);
+        respondWith(ctx, `${await getRandomEmote(['sad'])} There has been an error reading your user. ${await getRandomEmote(['scared'])} Try \`!deregister\` and then \`!register\`, or dm the maker.`);
         return;
     }
     
     respondWith(ctx,
-        `${await getRandomEmote(['meow'])} I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())} 
+        `${await getRandomEmote(['meow', 'regular'])} I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())} 
         `)
         // (aka ${timeText.substring(12)}) to \'${messageText}\'
     
@@ -132,7 +133,7 @@ export async function helpCommand(ctx: CommandContext) {
         `!help - Show this help message` + 
         `` + 
         `> There's a hidden command that does something weird, so good luck finding it! ` + 
-        `> (don't check the source code :pls:)
+        `> (don't check the source code for this :pls:${await getRandomEmote(['scared'])})
         `);
 }
 export async function meowCommand(ctx: CommandContext) {
