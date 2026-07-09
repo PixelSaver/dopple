@@ -26,6 +26,9 @@ export async function parseCommands(text: string, ctx: CommandContext) {
     console.log("Command is", command);
     ctx.args = args
     switch (command) {
+        case 'mew':
+            await mewCommand(ctx);
+            break;
         case 'uwu':
             await uwuCommand(ctx);
             break;
@@ -126,4 +129,7 @@ export async function meowCommand(ctx: CommandContext) {
 }
 export async function uwuCommand(ctx: CommandContext) {
     respondWith(ctx, 'uwu');
+}
+export async function mewCommand(ctx: CommandContext) {
+    respondWith(ctx, `:mew: -- but I'm sure you meant \`!meow\`, right??`);
 }
