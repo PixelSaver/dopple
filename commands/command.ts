@@ -26,7 +26,10 @@ export async function helloCommand(app:App, context:CommandContext) {
 
 // !register
 export async function registerCommand(app: App, ctx: CommandContext) {
-    let result = await register(ctx.senderId);
+    const res = await app.client.users.info({
+      user: ctx.senderId,
+    });
+    let result = await register(res.user?.name ?? "", res.user?.id ?? ctx.senderId);
     respondWith(app, ctx, result);
 }
 
@@ -54,7 +57,15 @@ export async function remindmeCommand(app: App, ctx: CommandContext) {
         return;
     }
     
-    respondWith(app, ctx, `I'll remind you on ${date.toLocaleString()} to ${messageText}`)
+    respondWith(app, ctx, `I'll remind you on ${date.toTimeString()} to \'${messageText}\'`)
     
     
+}
+export async function helpCommand(app: App, ctx: CommandContext) {
+    respondWith(app, ctx, `Available commands:\n
+        !register - Register yourself for using this bot\n
+        !deregister - Deregister yourself from using this bot\n
+        !remindme - Set a reminder (\`!remindme in <time> to <reminder text>\`)\n
+        !help - Show this help message
+        `);
 }

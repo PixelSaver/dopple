@@ -2,8 +2,8 @@ import { App } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
 import { MARKER } from "./marker/marker";
 import type { CommandContext } from "./commands/command";
-import { is_registered } from "./register/register";
-import { helloCommand, registerCommand, deregisterCommand, remindmeCommand } from "./commands/command";
+import { isRegistered, checkReminders } from "./register/register";
+import { helloCommand, registerCommand, deregisterCommand, remindmeCommand, helpCommand} from "./commands/command";
 
 
 async function parseCommands(app: App, text: string, ctx: CommandContext) {
@@ -16,6 +16,9 @@ async function parseCommands(app: App, text: string, ctx: CommandContext) {
     console.log("Command is", command);
     ctx.args = args
     switch (command) {
+        case 'help':
+            await helpCommand(app, ctx);
+            break;
         case 'register':
             await registerCommand(app, ctx);
             break;
@@ -23,7 +26,7 @@ async function parseCommands(app: App, text: string, ctx: CommandContext) {
             await deregisterCommand(app, ctx);
             break;
     }
-    if (!is_registered(ctx.senderId)) { return; }
+    if (!isRegistered(ctx.senderId)) { return; }
     switch (command) {
         case 'hello':
             await helloCommand(app, ctx);
@@ -57,7 +60,7 @@ app.message(async (event) => {
     })
     
     // Make sure they opted in
-    var registered = await is_registered(event.payload.user);
+    var registered = await isRegistered(event.payload.user);
     if (!registered) { return;  };
     
     var message = event.payload.text ?? "";
@@ -82,6 +85,7 @@ app.message(async (event) => {
     // });
 })
 
-
-
 await app.start();
+setInterval(() => {
+    checkReminders(app.client)
+}, 10_000);
