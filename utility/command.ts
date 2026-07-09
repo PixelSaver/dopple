@@ -1,4 +1,4 @@
-import { register, deregister, setUserReminder } from "../users/users";
+import { register, deregister, setUserReminder, isRegistered } from "../users/users";
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 import { MARKER } from "../marker/marker";
@@ -11,6 +11,43 @@ export type CommandContext = {
     say: (message: any) => Promise<any>;
     args: string[];
 };
+
+export async function parseCommands(app: App, client: WebClient, text: string, ctx: CommandContext) {
+    // Commands start with !
+    if (!text.startsWith('!')) return;
+    text = text.substring(1);
+    const args: string[] = text.split(' ');
+    if (!args) return;
+    const command = args.at(0);
+    console.log("Command is", command);
+    ctx.args = args
+    switch (command) {
+        case 'uwu':
+            await uwuCommand(client, ctx);
+            break;
+        case 'meow':
+            await meowCommand(client, ctx);
+            break;
+        case 'help':
+            await helpCommand(client, ctx);
+            break;
+        case 'register':
+            await registerCommand(client, ctx);
+            break;
+        case 'deregister':
+            await deregisterCommand(client, ctx);
+            break;
+    }
+    if (!isRegistered(ctx.senderId)) { return; }
+    switch (command) {
+        case 'hello':
+            await helloCommand(client, ctx);
+            break;
+        case 'remindme':
+            await remindmeCommand(client, ctx);
+            break;
+    }
+}
 
 export async function respondWith(client: WebClient, ctx: CommandContext, message: string) {
     client.chat.postMessage({
@@ -75,4 +112,7 @@ export async function helpCommand(client: WebClient, ctx: CommandContext) {
 export async function meowCommand(client: WebClient, ctx: CommandContext) {
     const randomMeow = Math.random() < 0.5 ? ':miau:' : ':miau2:';
     respondWith(client, ctx, randomMeow);
+}
+export async function uwuCommand(client: WebClient, ctx: CommandContext) {
+    respondWith(client, ctx, 'uwu');
 }

@@ -14,7 +14,7 @@ function migrateUser(user: any): User {
     return {
         name: user.name ?? "",
         id: user.id,
-        reminders: user.reminders ?? [],
+        reminders: user.reminders ?? [] as Reminder[],
         pester: user.pester ?? false,
     };
 }
@@ -26,8 +26,8 @@ interface Reminder {
 export async function loadUsers(): Promise<User[]> {
     const data = await readFile(USERS_FILE, "utf8")
     const users = JSON.parse(data);
-    const migrated = users.map(migrateUser);
-    await saveUsers(users);
+    const migrated = users.map(migrateUser) as User[];
+    await saveUsers(migrated);
     return migrated;
 }
 export async function saveUsers(users: User[]): Promise<void> {
@@ -40,13 +40,11 @@ export async function register(name: string, user_id: string): Promise<string> {
     if (users.find((u) => u.id === user_id)) {
         console.log("Already registered");
         return (
-            "You have already registered yourself for using this bot, <@" +
-            user_id +
-            ">"
+            `You have already registered yourself for using this bot, <@${user_id}>`
         );
     }
-    users.push(migrateUser({ name: name, id: user_id}));
-    await writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+    users.push(migrateUser({ name: name, id: user_id }));
+    await saveUsers(users);
     return (
         "You have successfully registered yourself for using this bot, <@" +
         user_id +
