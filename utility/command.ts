@@ -80,13 +80,13 @@ export async function deregisterCommand(ctx: CommandContext) {
 
 export async function helpCommand(ctx: CommandContext) {
     respondWith(ctx, `Available commands: ${await getRandomEmote(['regular'])}\n` + 
-        `btw try different grammars and see if it works!(for, of, about, that, etc.) DM < @${ process.env.ME_ID }> if it doesn't so they can fix it.\n` + 
         `- !meow - Bot meows for you (why?)\n` + 
         `- !emote - Get a random emote (e.g. \`!emote happy\`)\n` + 
         `- !help - Show this help message\n` + 
         `- !register - Register yourself for using this bot\n` + 
         `- !deregister - Deregister yourself from using this bot\n` + 
         `- !remindme - *Set a reminder (\`!remindme <time (tomorrow, in three days, etc.)> to <reminder text>\`)` +
+        `btw try different grammars and see if it works!(for, of, about, that, etc.) DM < @${ process.env.ME_ID }> if it doesn't so they can fix it.\n` + 
         `` + 
         `*Only the starred commands need registration to function` + 
         `` + 
