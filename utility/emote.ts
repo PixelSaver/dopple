@@ -16,7 +16,7 @@ async function queryEmotes(tags: string[]): Promise<Emote[]> {
     return emotes.filter(emote => tags.every(tag => emote.tags.includes(tag)));
 }
 export async function getRandomEmote(tags: string[]): Promise<string> {
-    if (tags.length === 0) { return (await loadEmotes())[Math.floor(Math.random() * (await loadEmotes()).length)]?.emote ?? ""; };
+    if (tags.length === 0 || (tags.length === 1 && tags[0] === "")) { return (await loadEmotes())[Math.floor(Math.random() * (await loadEmotes()).length)]?.emote ?? ""; };
     const filtered = await queryEmotes(tags);
     if (filtered.length === 0) return "";
     const emote = filtered[Math.floor(Math.random() * filtered.length)]?.emote ?? "";
