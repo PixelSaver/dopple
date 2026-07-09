@@ -2,8 +2,9 @@ import { register, deregister, setUserReminder, isRegistered } from "../users/us
 import { formatSlackTimestamp } from "../utility/util";
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
-import { MARKER } from "../marker/marker";
 import * as chrono from "chrono-node";
+
+const DATE_CUTOFF = new Date("2000-01-01");
 
 export type CommandContext = {
     app: App;
@@ -56,7 +57,7 @@ export async function respondWith(ctx: CommandContext, message: string) {
     ctx.user_client.chat.postMessage({
         channel: ctx.channel,
         thread_ts: ctx.threadTs,
-        text: MARKER + message,
+        text: message,
     });
 }
 
@@ -91,6 +92,10 @@ export async function remindmeCommand(ctx: CommandContext) {
         respondWith(ctx, ':miau2: I couldn\'t parse the date. Please provide a valid date.');
         return;
     }
+    if (date.getTime() < DATE_CUTOFF.getTime()) {
+        respondWith(ctx, ':miau2: The date you provided is too far in the past. Don\'t be such an unc and choose a time when you were alive.');
+        return;
+    }
 
     let result = await setUserReminder(ctx.senderId, { date: date.toISOString(), message: messageText });
     if (!result) {
@@ -98,7 +103,10 @@ export async function remindmeCommand(ctx: CommandContext) {
         return;
     }
     
-    respondWith(ctx, `I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime()/1000).toString(), date.toLocaleString())} (aka ${timeText.substring(12)}) to \'${messageText}\'`)
+    respondWith(ctx,
+        `I'll remind you ${formatSlackTimestamp(Math.floor(date.getTime() / 1000).toString(), date.toLocaleString())} 
+        `)
+        // (aka ${timeText.substring(12)}) to \'${messageText}\'
     
     
 }

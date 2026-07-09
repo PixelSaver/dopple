@@ -10,5 +10,5 @@ export async function getMessagePermalink(ctx: CommandContext): Promise<string> 
     return result.permalink ?? "";
 }
 export function formatSlackTimestamp(timestamp: string, fallback_text: string): string {
-    return `<!date^${timestamp}^{date_long_pretty} at {time_secs}|${fallback_text}>`
+    return `<!date^${timestamp}^{date_long_pretty} at {time_secs}, or {ago}|${fallback_text}>`
 }

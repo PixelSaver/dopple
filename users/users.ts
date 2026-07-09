@@ -1,6 +1,5 @@
 import { readFile, writeFile, rename } from "node:fs/promises";
 import { WebClient } from "@slack/web-api";
-import { MARKER } from "../marker/marker";
 
 const USERS_FILE = "./data/users.json";
 let saveQueue = Promise.resolve();
@@ -28,7 +27,6 @@ export async function loadUsers(): Promise<User[]> {
     const data = await readFile(USERS_FILE, "utf8")
     const users = JSON.parse(data);
     const migrated = users.map(migrateUser) as User[];
-    await saveUsers(migrated);
     return migrated;
 }
 export async function saveUsers(users: User[]): Promise<void> {
@@ -41,8 +39,7 @@ export async function saveUsers(users: User[]): Promise<void> {
 }
 
 export async function register(name: string, user_id: string): Promise<string> {
-    const text = await readFile("./data/users.json", "utf8");
-    const users = JSON.parse(text) as User[];
+    const users = await loadUsers();
     if (users.find((u) => u.id === user_id)) {
         console.log("Already registered");
         return (
@@ -114,7 +111,7 @@ export async function checkReminders(client: WebClient) {
                 if (!dm.channel?.id) return;
                 await client.chat.postMessage({
                     channel: dm.channel.id,
-                    text: MARKER + reminder.message,
+                    text: reminder.message,
                 });
                 await consumeUserReminder(user.id, reminder.date);
             }

@@ -1,6 +1,5 @@
 import { App } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
-import { MARKER } from "./marker/marker";
 import { isRegistered, checkReminders, loadUsers, getUserPester } from "./users/users";
 import { respondWith, parseCommands } from "./utility/command";
 import { getRandomEmote } from "./utility/emote";
@@ -18,7 +17,7 @@ app.message(async (event) => {
     // Make sure its a message
     if (event.payload.subtype) return;
     // Make sure it's not self responding
-    if (event.payload.text?.startsWith(MARKER)) { return; }
+    if (event.payload.bot_id) { return; }
     
     parseCommands(event.payload.text ?? "", {
         app,
