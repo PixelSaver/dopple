@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@slack/bolt": "^4.7.3"
+    "@slack/bolt": "^4.7.3",
+    "chrono-node": "^2.9.1"
   }
 }

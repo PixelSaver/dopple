@@ -4,6 +4,11 @@ const USERS_FILE = "./data/users.json";
 
 interface User {
     id: string;
+    reminders: Reminder[],
+}
+interface Reminder {
+    date: string,
+    message: string,
 }
 
 export async function loadUsers(): Promise<User[]> {
@@ -25,7 +30,7 @@ export async function register(user_id: string): Promise<string> {
         console.log("Already registered")
         return 'You have already registered yourself for using this bot, <@' + user_id + '>';
     }
-    users.push({ id: user_id });
+    users.push({ id: user_id, reminders: [] });
     await writeFile(
         USERS_FILE,
         JSON.stringify(users, null, 2)
@@ -42,4 +47,16 @@ export async function deregister(user_id: string): Promise<string> {
     const filteredUsers = users.filter(u => u.id !== user_id);
     await saveUsers(filteredUsers);
     return 'You have successfully deregistered yourself from using this bot, <@' + user_id + '>';
+}
+async function getUser(user_id: string): Promise<User | undefined> {
+    const users = await loadUsers();
+    return users.find(u => u.id === user_id);
+}
+export async function setUserReminder(user_id: string, reminder: Reminder) { 
+    const users = await loadUsers();
+    const user = users.find(u => u.id === user_id);
+    if (!user || !user.reminders) { return false; }
+    user.reminders.push(reminder);
+    
+    await saveUsers(users);
 }
