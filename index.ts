@@ -59,11 +59,11 @@ app.message(async (event) => {
     //     console.log(message);
     // };
 
-    await client.chat.postMessage({
-        channel: event.payload.channel,
-        thread_ts: event.payload.thread_ts ?? event.payload.ts,
-        text: ':miau2:',
-    });
+    // await client.chat.postMessage({
+    //     channel: event.payload.channel,
+    //     thread_ts: event.payload.thread_ts ?? event.payload.ts,
+    //     text: ':miau2:',
+    // });
     
     // event.say(':miau2: <@' + process.env.ID + '> :miau:');
     // await client.chat.postMessage({
