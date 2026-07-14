@@ -17,8 +17,9 @@ export type CommandContext = {
 };
 
 export async function parseCommands(text: string, ctx: CommandContext) {
-    // Commands start with !
-    if (!text.startsWith('!')) return;
+    const match = text.match(/^!([a-z][a-z0-9_]*)\b(?:\s+(.*))?$/i);
+    // ! which is immediately followed by letters/numbers/udnerscores
+    if (!match) return;
     text = text.substring(1);
     const args: string[] = text.split(' ');
     if (!args) return;
